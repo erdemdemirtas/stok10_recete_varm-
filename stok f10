@@ -1,0 +1,28 @@
+SELECT TOP 100 PERCENT
+    sto_Guid AS [#msg_S_0088],          /* KAYIT NO */
+    sto_kod AS [msg_S_0078],            /* KODU */
+    sto_isim AS [msg_S_0870],           /* ADI */
+    ISNULL(sfiyat_fiyati,0) AS [msg_S_0006], /* FİYAT */
+    Kur_adi AS [msg_S_1173],             /* DVZ */
+    dbo.fn_EldekiMiktar(sto_kod) AS [msg_S_0165], /* MİKTAR */
+
+    CASE 
+        WHEN EXISTS (
+            SELECT 1
+            FROM dbo.URUN_RECETELERI R WITH (NOLOCK)
+            WHERE R.rec_anakod = sto_kod
+        )
+        THEN 'VAR'
+        ELSE 'YOK'
+    END AS [RECETE_DURUMU]
+
+FROM dbo.STOKLAR WITH (NOLOCK)
+
+LEFT OUTER JOIN dbo.STOK_SATIS_FIYATLARI_F1_D0_VIEW 
+    ON sfiyat_stokkod = sto_kod 
+   AND sfiyat_satirno = 1
+
+LEFT OUTER JOIN MikroDesktop.dbo.KUR_ISIMLERI 
+    ON Kur_No = ISNULL(sfiyat_doviz,0)
+
+ORDER BY sto_kod;
